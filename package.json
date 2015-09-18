@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/bordelstudio/sage#readme",
   "devDependencies": {
+    "autoprefixer": "^6.0.3",
     "babel-core": "^5.8.24",
     "babel-loader": "^5.3.2",
     "browser-sync": "^2.9.3",

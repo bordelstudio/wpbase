@@ -68,6 +68,10 @@ gulp.task("webpack", function(callback) {
     });
 });
 
+let copyFiles = () =>{
+  return gulp.src('assets/scripts/modernizr.js')
+    .pipe(gulp.dest('dist'));
+}
 
 
 gulp.task("serve", () =>{
@@ -76,9 +80,11 @@ gulp.task("serve", () =>{
   });
   gulp.watch(paths.css,["css"])
   gulp.watch(paths.scripts,["webpack"])
+  copyFiles();
 });
 
 gulp.task("build", () =>{
   DEV_ENV = 'production';
+  copyFiles();
   gulp.start(['webpack','css']);
 });
