@@ -5,8 +5,15 @@ import postcss from 'gulp-postcss';
 import precss from 'precss';
 import autoprefixer from 'autoprefixer';
 import minmax from 'postcss-media-minmax';
-import postcss-neat from 'postcss-neat';
+import postcssNeat from 'postcss-neat';
+import cssnano from 'cssnano';
+import sourcemaps from 'gulp-sourcemaps';
 
+import browserSync from 'browser-sync';
+
+const bS = browserSync.create();
+
+let DEV_ENV = 'dev';
 const paths = {
   css: ['assets/styles/*.css', 'assets/styles/**/*.css'],
   scripts: ['assets/scripts/*.jsx', 'assets/scripts/*.js'],
@@ -15,16 +22,18 @@ const paths = {
 
 gulp.task('css', function () {
     var processors = [
-      autoprefixer({browsers: ['> 1%','IE 9','IE 10']}),
+      cssnano({autoprefixer: false, sourcemap: true}),
+      autoprefixer({browsers: ['> 1%','IE 9','IE 10','Firefox >= 10']}),
       precss,
-      postcss-neat,
-      minmax
+      minmax,
+      postcssNeat({neatMaxWidth: '80em'})
     ];
-    return gulp.src('assets/styles/main.css').pipe(
-        postcss(processors)
-    ).pipe(
-        gulp.dest('dist/')
-    );
+    return gulp.src('assets/styles/main.css')
+      .pipe(sourcemaps.init())
+      .pipe(postcss(processors))
+      .pipe(sourcemaps.write('.'))
+      .pipe(gulp.dest('dist'))
+      .pipe(bS.stream());
 });
 
 
@@ -32,11 +41,13 @@ gulp.task("webpack", function(callback) {
     // run webpack
     webpack({
       watch: false,
+      devtool: "source-map",
       entry: "./assets/scripts/main.js",
       output: {
         path: 'dist/',
         filename: 'bundle.js'
       },
+      plugins: (DEV_ENV === 'production') ? [new webpack.optimize.UglifyJsPlugin()] : [],
       module:{
         loaders:[
           {
@@ -48,6 +59,7 @@ gulp.task("webpack", function(callback) {
       }
         // configuration
     }, (err, stats) => {
+        bS.reload();
         if(err) throw new gutil.PluginError("webpack", err);
         gutil.log("[webpack]", stats.toString({
             // output options
@@ -57,7 +69,16 @@ gulp.task("webpack", function(callback) {
 });
 
 
+
 gulp.task("serve", () =>{
+  bS.init({
+    // proxy: "yourlocal.dev"
+  });
   gulp.watch(paths.css,["css"])
   gulp.watch(paths.scripts,["webpack"])
+});
+
+gulp.task("build", () =>{
+  DEV_ENV = 'production';
+  gulp.start(['webpack','css']);
 });

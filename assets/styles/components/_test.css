@@ -1,3 +1,4 @@
 body{
+  @neat-outer-container;
   transition: 300ms all ease;
 }
