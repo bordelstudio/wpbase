@@ -8,6 +8,12 @@ import minmax from 'postcss-media-minmax';
 import postcssNeat from 'postcss-neat';
 import cssnano from 'cssnano';
 import sourcemaps from 'gulp-sourcemaps';
+import dotenv from 'dotenv';
+import path from 'path';
+
+dotenv.config({path: path.resolve(__dirname, '../../../../.env')})
+dotenv.load();
+console.log(process.env);
 
 import browserSync from 'browser-sync';
 
@@ -76,7 +82,7 @@ let copyFiles = () =>{
 
 gulp.task("serve", () =>{
   bS.init({
-    // proxy: "yourlocal.dev"
+    proxy: process.env.WP_HOME
   });
   gulp.watch(paths.css,["css"])
   gulp.watch(paths.scripts,["webpack"])
