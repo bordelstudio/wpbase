@@ -3,6 +3,7 @@ import gutil from 'gulp-util';
 import webpack from 'webpack';
 import postcss from 'gulp-postcss';
 import atImport from 'postcss-import';
+import postNested from 'postcss-nested';
 import precss from 'precss';
 import autoprefixer from 'autoprefixer';
 import minmax from 'postcss-media-minmax';
@@ -40,6 +41,7 @@ gulp.task('css', function () {
       postCssSimpleVariables,
       minmax,
       postcssNeat({neatMaxWidth: '80em'}),
+      postNested,
       atImport
     ];
     return gulp.src('assets/styles/main.css')
