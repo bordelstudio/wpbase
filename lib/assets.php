@@ -52,17 +52,7 @@ function asset_path($filename) {
   $directory = dirname($filename) . '/';
   $file = basename($filename);
   static $manifest;
-
-  if (empty($manifest)) {
-    $manifest_path = get_template_directory() . DIST_DIR . 'assets.json';
-    $manifest = new JsonManifest($manifest_path);
-  }
-
-  if (array_key_exists($file, $manifest->get())) {
-    return $dist_path . $directory . $manifest->get()[$file];
-  } else {
-    return $dist_path . $directory . $file;
-  }
+  return $dist_path . $file;
 }
 
 function assets() {
@@ -72,7 +62,7 @@ function assets() {
     wp_enqueue_script('comment-reply');
   }
 
-  wp_enqueue_script('modernizr', asset_path('/modernizr.js'), [], null, true);
-  wp_enqueue_script('sage/js', asset_path('/bundle.js'), [], null, true);
+  wp_enqueue_script('modernizr', asset_path('modernizr.js'), [], null, true);
+  wp_enqueue_script('sage/js', asset_path('bundle.js'), [], null, true);
 }
 add_action('wp_enqueue_scripts', __NAMESPACE__ . '\\assets', 100);
