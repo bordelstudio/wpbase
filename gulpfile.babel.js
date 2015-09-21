@@ -4,15 +4,22 @@ import webpack from 'webpack';
 import postcss from 'gulp-postcss';
 import atImport from 'postcss-import';
 import postNested from 'postcss-nested';
-import precss from 'precss';
 import autoprefixer from 'autoprefixer';
 import minmax from 'postcss-media-minmax';
-import postcssNeat from 'postcss-neat';
+import cssTriangle from 'postcss-triangle';
+import rucksack from 'rucksack-css';
+import cssCentering from 'postcss-center';
+import pixrem from 'pixrem';
+
+// import lost from 'lost';
+import grid from 'postcss-grid';
+
 import cssnano from 'cssnano';
 import sourcemaps from 'gulp-sourcemaps';
 import browserSync from 'browser-sync';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import plumber from 'gulp-plumber'
 import postCssSimpleVariables from 'postcss-simple-vars';
 
@@ -27,7 +34,6 @@ const paths = {
   scripts: ['assets/scripts/*.jsx', 'assets/scripts/*.js'],
 };
 
-
 const onError = function (err) {
   gutil.beep();
   console.log(err);
@@ -36,18 +42,27 @@ const onError = function (err) {
 
 gulp.task('css', function () {
     var processors = [
-      cssnano({autoprefixer: false, sourcemap: true}),
+      atImport(),
+      grid({
+        columns: 12, // the number of columns in the grid
+        maxWidth: 960, // the maximum width of the grid (in px)
+        gutter: 20, // the width of the gutter (in px)
+        legacy: false // fixes the double-margin bug in older browsers. Defaults to false
+      }),
+      postCssSimpleVariables(),
+      minmax(),
+      postNested(),
+      cssCentering(),
+      rucksack(),
+      cssTriangle(),
       autoprefixer({browsers: ['> 1%','IE 9','IE 10','Firefox >= 10']}),
-      postCssSimpleVariables,
-      minmax,
-      postcssNeat({neatMaxWidth: '80em'}),
-      postNested,
-      atImport
+      cssnano({autoprefixer: false, sourcemap: true})
     ];
     return gulp.src('assets/styles/main.css')
-      .pipe(plumber({errorHandler: onError}))
+      .pipe(plumber({errorHagstndler: onError}))
       .pipe(sourcemaps.init())
       .pipe(postcss(processors))
+      .on("error",onError)
       .pipe(sourcemaps.write('.'))
       .pipe(gulp.dest('dist'))
       .pipe(bS.stream());
@@ -90,7 +105,19 @@ let copyFiles = () =>{
     .pipe(gulp.dest('dist'));
 }
 
+let remtopx = () =>{
+  let css = fs.readFileSync('dist/main.css', 'utf8');
+  let processedCss = pixrem.process(css, '200%');
+  fs.writeFile("dist/main.css", processedCss, ()=>{
+    if (err) {
+      throw err;
+    }
+    console.log('Compiles REM to PX');
+  });
+}
+
 gulp.task("default",["serve"]);
+
 gulp.task("serve", () =>{
   bS.init({
     proxy: process.env.WP_HOME
