@@ -56,7 +56,7 @@ gulp.task('css', function () {
       rucksack(),
       cssTriangle(),
       autoprefixer({browsers: ['> 1%','IE 9','IE 10','Firefox >= 10']}),
-      cssnano({autoprefixer: false, sourcemap: true, convertValues: true})
+      cssnano({autoprefixer: false, sourcemap: true, convertValues: {length: false}})
     ];
     return gulp.src('assets/styles/main.css')
       .pipe(plumber({errorHagstndler: onError}))
