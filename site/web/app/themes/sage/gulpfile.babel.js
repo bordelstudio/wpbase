@@ -10,7 +10,8 @@ import cssTriangle from 'postcss-triangle';
 import rucksack from 'rucksack-css';
 import cssCentering from 'postcss-center';
 import pixrem from 'pixrem';
-
+import cssnext from 'cssnext';
+import simpleExtend from 'postcss-extend';
 // import lost from 'lost';
 import grid from 'postcss-grid';
 
@@ -43,10 +44,12 @@ const onError = function (err) {
 gulp.task('css', function () {
     var processors = [
       atImport(),
+      simpleExtend(),
+      cssnext(),
       grid({
         columns: 12, // the number of columns in the grid
         maxWidth: 960, // the maximum width of the grid (in px)
-        gutter: 20, // the width of the gutter (in px)
+        gutter: 0, // the width of the gutter (in px)
         legacy: false // fixes the double-margin bug in older browsers. Defaults to false
       }),
       postCssSimpleVariables(),
@@ -101,7 +104,7 @@ gulp.task("webpack", function(callback) {
 });
 
 let copyFiles = () =>{
-  return gulp.src('assets/scripts/modernizr.js')
+  return gulp.src(['assets/scripts/modernizr.js','assets/scripts/history.js'])
     .pipe(gulp.dest('dist'));
 }
 

@@ -9,3 +9,4 @@
   src: kamaln7.swapfile
 - name: mailhog
   src: geerlingguy.mailhog
+- src: f500.nodejs
