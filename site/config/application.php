@@ -23,6 +23,9 @@ if (file_exists($env_config)) {
   require_once $env_config;
 }
 
+
+define('WP_DEFAULT_THEME', 'sage');
+
 /**
  * URLs
  */
