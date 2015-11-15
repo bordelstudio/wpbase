@@ -22,6 +22,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 import plumber from 'gulp-plumber'
+import notify from 'gulp-notify';
 import postCssSimpleVariables from 'postcss-simple-vars';
 
 dotenv.config({path: path.resolve(__dirname, '../../../../.env')})
@@ -68,6 +69,7 @@ gulp.task('css', function () {
       .on("error",onError)
       .pipe(sourcemaps.write('.'))
       .pipe(gulp.dest('dist'))
+      .pipe(notify('Compiled CSS'))
       .pipe(bS.stream());
 });
 
@@ -100,13 +102,20 @@ gulp.task("webpack", function(callback) {
             // output options
         }));
         callback();
+        notify('Compiled JS');
     });
 });
 
 let copyFiles = () =>{
   return gulp.src('assets/vendors/**.*')
-    .pipe(gulp.dest('dist'));
+    .pipe(gulp.dest('dist'))
+    .pipe(notify('Copied Files'));
 }
+
+gulp.task("copyFiles", function(callback) {
+  return copyFiles()
+});
+
 
 let remtopx = () =>{
   let css = fs.readFileSync('dist/main.css', 'utf8');
@@ -121,18 +130,18 @@ let remtopx = () =>{
 
 gulp.task("default",["serve"]);
 
-gulp.task("serve", () =>{
+gulp.task("serve",['copyFiles','css','webpack'],() =>{
   bS.init({
     proxy: process.env.WP_HOME
   });
   gulp.watch(paths.css,["css"])
   gulp.watch(paths.scripts,["webpack"])
-  copyFiles();
+  // copyFiles();
 });
 
-gulp.task("build", (done) =>{
+gulp.task("build",['copyFiles'],(done) =>{
   DEV_ENV = 'production';
-  copyFiles();
+  // copyFiles();
   gulp.start(['webpack','css'],(err)=>{
     done();
   });
