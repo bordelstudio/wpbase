@@ -130,8 +130,11 @@ gulp.task("serve", () =>{
   copyFiles();
 });
 
-gulp.task("build", () =>{
+gulp.task("build", (done) =>{
   DEV_ENV = 'production';
   copyFiles();
-  gulp.start(['webpack','css']);
+  gulp.start(['webpack','css'],(err)=>{
+    done();
+  });
 });
+
