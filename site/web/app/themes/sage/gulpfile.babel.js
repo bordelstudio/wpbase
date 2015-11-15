@@ -104,7 +104,7 @@ gulp.task("webpack", function(callback) {
 });
 
 let copyFiles = () =>{
-  return gulp.src(['assets/scripts/modernizr.js','assets/scripts/history.js'])
+  return gulp.src('assets/vendors/**.*')
     .pipe(gulp.dest('dist'));
 }
 
@@ -137,4 +137,3 @@ gulp.task("build", (done) =>{
     done();
   });
 });
-
