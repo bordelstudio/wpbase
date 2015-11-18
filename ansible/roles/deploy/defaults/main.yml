@@ -80,10 +80,7 @@ project_pre_build_commands_local: []
 project_pre_build_commands: []
 project_post_build_commands:
   - cmd: "composer install --no-ansi --no-dev --no-interaction --no-progress --optimize-autoloader --no-scripts"
-  - path: "web/app/themes/sage"
-    cmd: "npm install"
-  - path: "web/app/themes/sage"
-    cmd: "gulp build"
+  - cmd: wp plugin activate --all
 
 # Post finalize commands are run with Ansible's `shell` module.
 # These are meant primarily for service restarts such as php5-fpm or memcached.
