@@ -76,6 +76,15 @@ gulp.task('css', function () {
 
 gulp.task("webpack", function(callback) {
     // run webpack
+    let plugins = [
+      new webpack.ProvidePlugin({
+          $: "jquery",
+          jQuery: "jquery",
+          "window.jQuery": "jquery"
+      })
+    ];
+    if(DEV_ENV === 'production')
+      plugins.push(new webpack.optimize.UglifyJsPlugin({mangle: false, compress: false}))
     webpack({
       watch: false,
       devtool: "source-map",
@@ -83,6 +92,15 @@ gulp.task("webpack", function(callback) {
       output: {
         path: 'dist/',
         filename: 'bundle.js'
+      },
+      resolve:{
+        modulesDirectories:[
+          'node_modules',
+          'vendor'
+        ]
+      },
+      externals: {
+        'TweenLite': 'TweenLite'
       },
       plugins: (DEV_ENV === 'production') ? [new webpack.optimize.UglifyJsPlugin()] : [],
       module:{
