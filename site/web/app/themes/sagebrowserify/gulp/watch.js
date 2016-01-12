@@ -19,7 +19,7 @@ export default function(gulp, plugins, args, config, taskTarget, browserSync) {
         path.join(dirs.source, '**/*.nunjucks'),
         path.join(dirs.source, dirs.data, '**/*.json')
       ], ['nunjucks']);
-      
+
 
       // Copy
       gulp.watch([

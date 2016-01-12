@@ -1,166 +1,67 @@
-import gulp from 'gulp';
-import gutil from 'gulp-util';
-import webpack from 'webpack';
-import postcss from 'gulp-postcss';
-import atImport from 'postcss-import';
-import postNested from 'postcss-nested';
-import autoprefixer from 'autoprefixer';
-import minmax from 'postcss-media-minmax';
-import cssTriangle from 'postcss-triangle';
-import rucksack from 'rucksack-css';
-import cssCentering from 'postcss-center';
-import pixrem from 'pixrem';
-import cssnext from 'cssnext';
-import simpleExtend from 'postcss-extend';
-// import lost from 'lost';
-import grid from 'postcss-grid';
+'use strict';
 
-import cssnano from 'cssnano';
-import sourcemaps from 'gulp-sourcemaps';
-import browserSync from 'browser-sync';
-import dotenv from 'dotenv';
 import path from 'path';
-import fs from 'fs';
-import plumber from 'gulp-plumber'
-import notify from 'gulp-notify';
-import postCssSimpleVariables from 'postcss-simple-vars';
+import gulp from 'gulp';
+import gulpLoadPlugins from 'gulp-load-plugins';
+import browserSyncLib from 'browser-sync';
+import pjson from './package.json';
+import minimist from 'minimist';
+import wrench from 'wrench';
 
-dotenv.config({path: path.resolve(__dirname, '../../../../.env')})
-dotenv.load();
+// Load all gulp plugins based on their names
+// EX: gulp-copy -> copy
+const plugins = gulpLoadPlugins();
+// Create karma server
+const KarmaServer = require('karma').Server;
 
-const bS = browserSync.create();
+let config = pjson.config;
+let args = minimist(process.argv.slice(2));
+let dirs = config.directories;
+let taskTarget = args.production ? dirs.destination : dirs.temporary;
 
-let DEV_ENV = 'dev';
-const paths = {
-  css: ['assets/styles/*.css', 'assets/styles/**/*.css'],
-  scripts: ['assets/scripts/*.jsx', 'assets/scripts/*.js'],
-};
+// Create a new browserSync instance
+let browserSync = browserSyncLib.create();
 
-const onError = function (err) {
-  gutil.beep();
-  console.log(err);
-  this.emit('end');
-};
-
-gulp.task('css', function () {
-    var processors = [
-      atImport(),
-      simpleExtend(),
-      cssnext(),
-      grid({
-        columns: 12, // the number of columns in the grid
-        maxWidth: 960, // the maximum width of the grid (in px)
-        gutter: 0, // the width of the gutter (in px)
-        legacy: false // fixes the double-margin bug in older browsers. Defaults to false
-      }),
-      postCssSimpleVariables(),
-      minmax(),
-      postNested(),
-      cssCentering(),
-      rucksack(),
-      cssTriangle(),
-      autoprefixer({browsers: ['> 1%','IE 9','IE 10','Firefox >= 10']}),
-      cssnano({autoprefixer: false, sourcemap: true, convertValues: {length: false}})
-    ];
-    return gulp.src('assets/styles/main.css')
-      .pipe(plumber({errorHagstndler: onError}))
-      .pipe(sourcemaps.init())
-      .pipe(postcss(processors))
-      .on("error",onError)
-      .pipe(sourcemaps.write('.'))
-      .pipe(gulp.dest('dist'))
-      .pipe(notify('Compiled CSS'))
-      .pipe(bS.stream());
+// This will grab all js in the `gulp` directory
+// in order to load all gulp tasks
+wrench.readdirSyncRecursive('./gulp').filter((file) => {
+  return (/\.(js)$/i).test(file);
+}).map(function(file) {
+  require('./gulp/' + file)(gulp, plugins, args, config, taskTarget, browserSync);
 });
 
-
-gulp.task("webpack", function(callback) {
-    // run webpack
-    let plugins = [
-      new webpack.ProvidePlugin({
-          $: "jquery",
-          jQuery: "jquery",
-          "window.jQuery": "jquery"
-      })
-    ];
-    if(DEV_ENV === 'production')
-      plugins.push(new webpack.optimize.UglifyJsPlugin({mangle: false, compress: false}))
-    webpack({
-      watch: false,
-      devtool: "source-map",
-      entry: "./assets/scripts/main.js",
-      output: {
-        path: 'dist/',
-        filename: 'bundle.js'
-      },
-      resolve:{
-        modulesDirectories:[
-          'node_modules',
-          'vendor'
-        ]
-      },
-      externals: {
-        'TweenLite': 'TweenLite'
-      },
-      plugins: (DEV_ENV === 'production') ? [new webpack.optimize.UglifyJsPlugin()] : [],
-      module:{
-        loaders:[
-          {
-            test: /\.jsx?$/,
-            exclude: /(node_modules|bower_components|dist)/,
-            loader: 'babel'
-          }
-        ]
-      }
-        // configuration
-    }, (err, stats) => {
-        bS.reload();
-        if(err) throw new gutil.PluginError("webpack", err);
-        gutil.log("[webpack]", stats.toString({
-            // output options
-        }));
-        callback();
-        notify('Compiled JS');
-    });
+// Default task
+gulp.task('default', ['clean'], () => {
+  gulp.start('build');
 });
 
-let copyFiles = () =>{
-  return gulp.src('assets/vendors/**.*')
-    .pipe(gulp.dest('dist'))
-    .pipe(notify('Copied Files'));
-}
+// Build production-ready code
+gulp.task('build', [
+  'copy',
+  'copyVendor',
+  'imagemin',
+  'nunjucks',
+  'sass',
+  'browserify'
+]);
 
-gulp.task("copyFiles", function(callback) {
-  return copyFiles()
-});
+// Server tasks with watch
+gulp.task('serve', [
+  'imagemin',
+  'copy',
+  'copyVendor',
+  'nunjucks',
+  'sass',
+  'browserify',
+  'browserSync',
+  'watch'
+]);
 
-
-let remtopx = () =>{
-  let css = fs.readFileSync('dist/main.css', 'utf8');
-  let processedCss = pixrem.process(css, '200%');
-  fs.writeFile("dist/main.css", processedCss, ()=>{
-    if (err) {
-      throw err;
-    }
-    console.log('Compiles REM to PX');
-  });
-}
-
-gulp.task("default",["serve"]);
-
-gulp.task("serve",['copyFiles','css','webpack'],() =>{
-  bS.init({
-    proxy: process.env.WP_HOME
-  });
-  gulp.watch(paths.css,["css"])
-  gulp.watch(paths.scripts,["webpack"])
-  // copyFiles();
-});
-
-gulp.task("build",['copyFiles'],(done) =>{
-  DEV_ENV = 'production';
-  // copyFiles();
-  gulp.start(['webpack','css'],(err)=>{
-    done();
-  });
+// Testing
+gulp.task('test', ['eslint'], (done) => {
+  new KarmaServer({
+    configFile: path.join(__dirname, '/karma.conf.js'),
+    singleRun: !args.watch,
+    autoWatch: args.watch
+  }, done).start();
 });

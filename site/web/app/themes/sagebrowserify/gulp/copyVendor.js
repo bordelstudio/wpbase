@@ -1,4 +1,4 @@
-
+import path from 'path';
 
 export default function(gulp, plugins, args, config, taskTarget, browserSync) {
   let dirs = config.directories;
@@ -6,7 +6,6 @@ export default function(gulp, plugins, args, config, taskTarget, browserSync) {
 
   gulp.task("copyVendor", function(callback) {
     return gulp.src('assets/vendors/**.*')
-      .pipe(gulp.dest('dist'))
-      .pipe(notify('Copied Files'));
+      .pipe(gulp.dest(dest))
   });
 }
