@@ -47,8 +47,8 @@ class JsonManifest {
   }
 }
 
-function asset_path($filename) {
-  $dist_path = get_template_directory_uri() . DIST_DIR;
+function asset_path($filename, $append='') {
+  $dist_path = get_template_directory_uri() . DIST_DIR . $append;
   $directory = dirname($filename) . '/';
   $file = basename($filename);
   static $manifest;
@@ -56,13 +56,13 @@ function asset_path($filename) {
 }
 
 function assets() {
-  wp_enqueue_style('sage/css', asset_path('main.css'), false, null);
+  wp_enqueue_style('sage/css', asset_path('main.css','styles/'), false, null);
 
   if (is_single() && comments_open() && get_option('thread_comments')) {
     wp_enqueue_script('comment-reply');
   }
 
   wp_enqueue_script('modernizr', asset_path('modernizr.js'), [], null, true);
-  wp_enqueue_script('sage/js', asset_path('bundle.js'), [], null, true);
+  wp_enqueue_script('sage/js', asset_path('main.js','scripts/'), [], null, true);
 }
 add_action('wp_enqueue_scripts', __NAMESPACE__ . '\\assets', 100);
